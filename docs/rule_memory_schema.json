@@ -1,0 +1,281 @@
+{
+  "title": "RuleMemory Graph Schema",
+  "type": "object",
+  "required": [
+    "version",
+    "updated_at_utc",
+    "entries",
+    "sources",
+    "runbook"
+  ],
+  "properties": {
+    "version": {
+      "type": "string",
+      "description": "Schema version for forward compatibility."
+    },
+    "updated_at_utc": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Last schema instance update timestamp in UTC."
+    },
+    "entries": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/memory_entry"
+      }
+    },
+    "sources": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/source_record"
+      }
+    },
+    "runbook": {
+      "$ref": "#/definitions/runbook_state"
+    }
+  },
+  "definitions": {
+    "memory_entry": {
+      "type": "object",
+      "required": [
+        "entry_id",
+        "entry_type",
+        "title",
+        "summary",
+        "confidence",
+        "status",
+        "created_at_utc",
+        "source_refs"
+      ],
+      "properties": {
+        "entry_id": {
+          "type": "string",
+          "description": "Stable identifier used across logs and demos."
+        },
+        "entry_type": {
+          "type": "string",
+          "enum": [
+            "rule",
+            "deadline",
+            "eligibility",
+            "preference",
+            "decision",
+            "incident",
+            "evidence",
+            "retrospective"
+          ]
+        },
+        "title": {
+          "type": "string"
+        },
+        "summary": {
+          "type": "string"
+        },
+        "long_form": {
+          "type": "string"
+        },
+        "confidence": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "active",
+            "stale",
+            "invalidated",
+            "superseded"
+          ]
+        },
+        "created_at_utc": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "expires_at_utc": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "source_refs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/source_ref"
+          }
+        },
+        "aliases": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "labels": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "notes": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/journal_note"
+          }
+        }
+      }
+    },
+    "source_record": {
+      "type": "object",
+      "required": [
+        "source_id",
+        "source_name",
+        "source_url",
+        "fetched_at_utc",
+        "content_hash"
+      ],
+      "properties": {
+        "source_id": {
+          "type": "string"
+        },
+        "source_name": {
+          "type": "string"
+        },
+        "source_url": {
+          "type": "string",
+          "format": "uri"
+        },
+        "source_type": {
+          "type": "string",
+          "enum": [
+            "official_rules",
+            "submission_page",
+            "project_gallery",
+            "operator_log",
+            "internal_note",
+            "incident"
+          ]
+        },
+        "fetched_at_utc": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "content_hash": {
+          "type": "string"
+        },
+        "http_status": {
+          "type": "integer"
+        },
+        "license_scope": {
+          "type": "string",
+          "enum": ["public", "internal"]
+        },
+        "region": {
+          "type": "string"
+        },
+        "stale_after_hours": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "notes": {
+          "type": "string"
+        }
+      }
+    },
+    "source_ref": {
+      "type": "object",
+      "required": [
+        "source_id",
+        "section_hint",
+        "captured_at_utc"
+      ],
+      "properties": {
+        "source_id": {
+          "type": "string"
+        },
+        "section_hint": {
+          "type": "string",
+          "description": "Section/anchor/line hint for auditability."
+        },
+        "captured_at_utc": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "quote": {
+          "type": "string"
+        }
+      }
+    },
+    "journal_note": {
+      "type": "object",
+      "required": [
+        "at_utc",
+        "actor",
+        "text"
+      ],
+      "properties": {
+        "at_utc": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "actor": {
+          "type": "string"
+        },
+        "text": {
+          "type": "string"
+        }
+      }
+    },
+    "runbook_state": {
+      "type": "object",
+      "properties": {
+        "smoke_test": {
+          "$ref": "#/definitions/smoke_check"
+        },
+        "stale_check_policy": {
+          "type": "string",
+          "enum": ["strict", "lenient", "off"]
+        },
+        "last_orchestrator": {
+          "type": "string"
+        },
+        "next_actions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "smoke_test": {
+      "type": "object",
+      "required": [
+        "run_at_utc",
+        "endpoint",
+        "http_status",
+        "result"
+      ],
+      "properties": {
+        "run_at_utc": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "endpoint": {
+          "type": "string",
+          "format": "uri"
+        },
+        "http_status": {
+          "type": "integer"
+        },
+        "result": {
+          "type": "string",
+          "enum": [
+            "pass",
+            "blocked",
+            "fail"
+          ]
+        },
+        "error_code": {
+          "type": "string"
+        }
+      }
+    }
+  }
+}

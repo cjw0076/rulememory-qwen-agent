@@ -1,0 +1,135 @@
+{
+  "version": "1.0",
+  "updated_at_utc": "2026-06-06T16:31:00+00:00",
+  "entries": [
+    {
+      "entry_id": "rm-live-20260607-001",
+      "entry_type": "deadline",
+      "title": "Qwen Cloud Hackathon submission deadline",
+      "summary": "The active submission period runs through 2026-07-09 14:00 PT, with an internal KST freeze target before 2026-07-08.",
+      "long_form": "RuleMemory should keep this deadline active and trigger stale checks before final package freeze. The KST internal deadline is tracked separately to avoid timezone drift.",
+      "confidence": 0.9,
+      "status": "active",
+      "created_at_utc": "2026-06-06T16:31:00+00:00",
+      "source_refs": [
+        {
+          "source_id": "qwen-brief-20260606",
+          "section_hint": "Official Facts / Submission period",
+          "captured_at_utc": "2026-06-06T16:31:00+00:00"
+        }
+      ],
+      "labels": ["deadline", "timezone", "submission"]
+    },
+    {
+      "entry_id": "rm-live-20260607-002",
+      "entry_type": "rule",
+      "title": "MemoryAgent is the primary track",
+      "summary": "RuleMemory targets the MemoryAgent track because it persists contest rules, preferences, stale assumptions, and source provenance across sessions.",
+      "long_form": "The demo should show memory improving decisions across two sessions: first by ingesting official rules, then by detecting stale assumptions and producing a readiness packet with source hashes.",
+      "confidence": 0.92,
+      "status": "active",
+      "created_at_utc": "2026-06-06T16:31:00+00:00",
+      "source_refs": [
+        {
+          "source_id": "qwen-brief-20260606",
+          "section_hint": "Required Build / MemoryAgent emphasis",
+          "captured_at_utc": "2026-06-06T16:31:00+00:00"
+        }
+      ],
+      "labels": ["track", "memoryagent", "strategy"]
+    },
+    {
+      "entry_id": "rm-live-20260607-003",
+      "entry_type": "evidence",
+      "title": "Qwen workspace API proof",
+      "summary": "The operator-provided workspace MaaS OpenAI-compatible endpoint returned HTTP 200 for both model listing and a minimal qwen-plus chat completion.",
+      "long_form": "Use the workspace-specific OpenAI-compatible base URL when running smoke tests. The previous default DashScope endpoint produced invalid_api_key responses and should not be treated as the active route for this key.",
+      "confidence": 0.96,
+      "status": "active",
+      "created_at_utc": "2026-06-06T16:31:00+00:00",
+      "source_refs": [
+        {
+          "source_id": "qwen-smoke-20260607",
+          "section_hint": "qwen_api_smoke_report / Observed result",
+          "captured_at_utc": "2026-06-06T16:31:00+00:00"
+        }
+      ],
+      "labels": ["api-proof", "qwen-cloud", "verified"]
+    },
+    {
+      "entry_id": "rm-live-20260607-004",
+      "entry_type": "decision",
+      "title": "Next package step",
+      "summary": "Proceed from credential validation to live RuleMemory seed entries, public package checklist, README packaging, and demo proof capture.",
+      "long_form": "The highest-impact next Qwen work is no longer credential debugging. It is creating a judge-readable package where Qwen model usage is central and the memory loop produces practical readiness artifacts.",
+      "confidence": 0.88,
+      "status": "active",
+      "created_at_utc": "2026-06-06T16:31:00+00:00",
+      "source_refs": [
+        {
+          "source_id": "qwen-autotick-20260607",
+          "section_hint": "autonomous tick 20260607T012854+0900",
+          "captured_at_utc": "2026-06-06T16:31:00+00:00"
+        }
+      ],
+      "labels": ["package", "builder", "next-action"]
+    }
+  ],
+  "sources": [
+    {
+      "source_id": "qwen-brief-20260606",
+      "source_name": "Qwen Cloud Hackathon competition brief",
+      "source_url": "docs/competition_brief_20260606.md",
+      "source_type": "internal_note",
+      "fetched_at_utc": "2026-06-06T16:31:00+00:00",
+      "content_hash": "local-brief-20260606",
+      "http_status": 200,
+      "license_scope": "internal",
+      "region": "global",
+      "stale_after_hours": 24,
+      "notes": "Sanitized local brief derived from official public pages."
+    },
+    {
+      "source_id": "qwen-smoke-20260607",
+      "source_name": "Qwen API smoke report",
+      "source_url": "docs/qwen_api_smoke_report.md",
+      "source_type": "operator_log",
+      "fetched_at_utc": "2026-06-06T16:31:00+00:00",
+      "content_hash": "qwen-smoke-http-200-20260607",
+      "http_status": 200,
+      "license_scope": "internal",
+      "region": "ap-southeast-1",
+      "stale_after_hours": 24,
+      "notes": "No secret values persisted."
+    },
+    {
+      "source_id": "qwen-autotick-20260607",
+      "source_name": "Autonomous run after Qwen proof",
+      "source_url": "docs/qwen_api_smoke_report.md",
+      "source_type": "internal_note",
+      "fetched_at_utc": "2026-06-06T16:31:00+00:00",
+      "content_hash": "autonomous-run-20260607T012854",
+      "http_status": 200,
+      "license_scope": "internal",
+      "region": "local",
+      "stale_after_hours": 24,
+      "notes": "Credential presence only; no secret values included."
+    }
+  ],
+  "runbook": {
+    "smoke_test": {
+      "run_at_utc": "2026-06-06T16:28:54+00:00",
+      "endpoint": "https://your-workspace-id.ap-southeast-1.maas.aliyuncs.com/compatible-mode/v1/models",
+      "http_status": 200,
+      "result": "verified",
+      "error_code": "none"
+    },
+    "stale_check_policy": "strict",
+    "last_orchestrator": "codex.qwen_live_seed",
+    "next_actions": [
+      "Generate public package checklist",
+      "Create judge-facing README sections for RuleMemory",
+      "Capture demo flow using qwen-plus call plus RuleMemory packet output"
+    ]
+  }
+}
