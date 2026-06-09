@@ -1,5 +1,8 @@
 # RuleMemory
 
+> **▶ 60-second demo video:** [https://github.com/cjw0076/rulememory-qwen-agent/releases/download/demo-v1/rulememory_qwen_demo.mp4](https://github.com/cjw0076/rulememory-qwen-agent/releases/download/demo-v1/rulememory_qwen_demo.mp4)
+
+
 RuleMemory is a Qwen-powered MemoryAgent for competition and launch teams that
 must keep rules, deadlines, source evidence, stale assumptions, and submission
 readiness synchronized across sessions.
