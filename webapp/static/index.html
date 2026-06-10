@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>RuleMemory — Qwen Cloud MemoryAgent</title>
+<link rel="stylesheet" href="/static/app.css" />
+</head>
+<body>
+<header>
+  <div class="brand">
+    <span class="logo">◆</span>
+    <div>
+      <h1>RuleMemory</h1>
+      <div class="sub">Qwen Cloud MemoryAgent · typed memory · provenance · semantic recall · stale &amp; conflict detection</div>
+    </div>
+  </div>
+  <div class="status" id="status">connecting…</div>
+</header>
+
+<main>
+  <section class="col">
+    <div class="card">
+      <h2>1 · Ingest rules / notes</h2>
+      <p class="hint">Qwen extracts atomic typed facts (rule / deadline / assumption / fact), stores each with a source char-span, and supersedes conflicting older facts.</p>
+      <textarea id="ingestText" rows="6" placeholder="Paste contest rules, deadlines, assumptions…"></textarea>
+      <div class="row">
+        <input id="sourceId" value="contest-rules-v1" />
+        <button id="ingestBtn">Ingest with Qwen</button>
+        <button id="seed1" class="ghost">Load session-1 sample</button>
+        <button id="seed2" class="ghost">Load correction sample</button>
+      </div>
+      <div id="ingestOut" class="out"></div>
+    </div>
+
+    <div class="card">
+      <h2>2 · Ask a grounded question</h2>
+      <p class="hint">Semantic recall pulls the most relevant memory; Qwen answers only from it and warns on stale/superseded facts.</p>
+      <div class="row">
+        <input id="question" placeholder="When is the submission deadline?" />
+        <button id="askBtn">Ask</button>
+        <button id="recallBtn" class="ghost">Recall only</button>
+      </div>
+      <div id="askOut" class="out"></div>
+    </div>
+  </section>
+
+  <section class="col">
+    <div class="card">
+      <h2>Memory</h2>
+      <div class="row">
+        <button id="refreshMem" class="ghost">Refresh</button>
+        <button id="resetBtn" class="ghost danger">Reset store</button>
+      </div>
+      <div id="summary" class="summary"></div>
+      <div id="memTable"></div>
+    </div>
+    <div class="card">
+      <h2>Transcript <span class="hint">(replayable, multi-step)</span></h2>
+      <div id="transcript" class="transcript"></div>
+    </div>
+  </section>
+</main>
+<script src="/static/app.js"></script>
+</body>
+</html>

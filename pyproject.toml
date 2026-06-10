@@ -1,0 +1,25 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "rulememory-qwen-agent"
+version = "1.0.0"
+description = "RuleMemory — a Qwen-powered MemoryAgent with typed, provenance-tracked, semantically-recallable memory."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+dependencies = ["numpy>=1.24"]
+
+[project.optional-dependencies]
+web = ["fastapi>=0.110", "uvicorn>=0.27", "pydantic>=2.0"]
+local = ["transformers>=5.10", "accelerate>=1.0", "qwen-vl-utils"]
+embed = ["sentence-transformers>=2.2"]
+test = ["pytest>=7.0"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"

@@ -1,0 +1,113 @@
+
+==============================================================================
+SESSION 1  —  ingest contest rules (real Qwen fact extraction)
+==============================================================================
+reasoner backend : qwen-local
+embedder         : hashing-tfidf
+
+SOURCE TEXT:
+  Global AI Hackathon Series with Qwen Cloud — MemoryAgent track. The final submission deadline is 2026-07-10T23:59:00+00:00 on Devpost. Teams may have at most 4 members and must register before kickoff. Submissions must use a Qwen model via Qwen Cloud MaaS. We should still use Python 2 for the build scripts since that is what the old runner expected. The grand prize is 10000 USD.
+
+Qwen extracted 6 facts:
+  - (  deadline) The final submission deadline is 2026-07-10T23:59:00+00:00 on Devpost.  due=2026-07-10T23:59:00Z
+  - (      rule) Teams may have at most 4 members.
+  - (      rule) Teams must register before kickoff.
+  - (      rule) Submissions must use a Qwen model via Qwen Cloud MaaS.
+  - (assumption) We should still use Python 2 for the build scripts since that is what the old runner expected. [STALE]
+  - (      fact) The grand prize is 10000 USD.
+
+Stale flagged after session 1: ['We should still use Python 2 for the build scripts since that is what the old runner expected.']
+Memory persisted to /home/user/workspaces/jaewon/dacon/competitions/qwen_cloud_hackathon_2026/public_repo_staging/rulememory-qwen-agent/eval/_demo_run/memory.jsonl  (6 entries)
+
+==============================================================================
+SESSION 2  —  RESTART: reload from disk, ingest correction, answer
+==============================================================================
+reloaded 6 entries from disk (cross-session memory).
+
+CORRECTION SOURCE:
+  Update from the organizers: the runner was upgraded, so the toolchain now requires Python 3.11. Also confirmed: judging is done by Qwen and Alibaba Cloud engineers.
+
+Qwen extracted 2 facts from the correction:
+  - (      rule) The toolchain now requires Python 3.11.
+  - (assumption) Judging is done by Qwen and Alibaba Cloud engineers.
+
+==============================================================================
+STALE REPORT (now)
+==============================================================================
+  - assumption: We should still use Python 2 for the build scripts since that is what the old runner expected.  ::  flagged as an outdated assumption
+
+==============================================================================
+DEADLINES DUE WITHIN 45 DAYS (1080h)
+==============================================================================
+  - The final submission deadline is 2026-07-10T23:59:00+00:00 on Devpost.  (in 741.08h, due 2026-07-10T23:59:00Z)
+
+==============================================================================
+GROUNDED Q&A  (semantic recall -> Qwen answer)
+==============================================================================
+
+Q: When is the submission deadline and how soon is it?
+  recall hits:
+    0.549  (deadline) The final submission deadline is 2026-07-10T23:59:00+00:00 on Devpost.
+    0.266  (fact) The grand prize is 10000 USD.
+    0.241  (assumption) [STALE] We should still use Python 2 for the build scripts since that is what the old runner expected.
+    0.212  (assumption) Judging is done by Qwen and Alibaba Cloud engineers.
+  A: The submission deadline is 2026-07-10T23:59:00+00:00 on Devpost. It is approximately 8 years and 1 month away.
+  ! warning: The assumption about using Python 2 for the build scripts is marked as stale and should be disregarded.
+  provenance: #1->contest-rules-v1[68:133]
+
+Q: What Python version should we use for the build scripts?
+  recall hits:
+    0.755  (assumption) [STALE] We should still use Python 2 for the build scripts since that is what the old runner expected.
+    0.231  (rule) The toolchain now requires Python 3.11.
+    0.204  (deadline) The final submission deadline is 2026-07-10T23:59:00+00:00 on Devpost.
+    0.124  (rule) Submissions must use a Qwen model via Qwen Cloud MaaS.
+  A: The toolchain now requires Python 3.11.
+  ! warning: The assumption in fact #1 is marked as STALE.
+  provenance: #2->organizer-update-v2[60:89]
+
+Q: How many members can a team have, and which model must we use?
+  recall hits:
+    0.373  (rule) Teams may have at most 4 members.
+    0.331  (rule) Submissions must use a Qwen model via Qwen Cloud MaaS.
+    0.245  (assumption) Judging is done by Qwen and Alibaba Cloud engineers.
+    0.165  (rule) Teams must register before kickoff.
+  A: A team can have at most 4 members, and submissions must use a Qwen model via Qwen Cloud MaaS.
+  provenance: #1->contest-rules-v1[135:167], #2->contest-rules-v1[202:255]
+
+==============================================================================
+MEMORY TABLE (final, with provenance + status)
+==============================================================================
+  [    ACTIVE|fresh] (  deadline) The final submission deadline is 2026-07-10T23:59:00+00:00 on Devpost.
+               prov: contest-rules-v1[68:133] sess=s1
+  [    ACTIVE|fresh] (      rule) Teams may have at most 4 members.
+               prov: contest-rules-v1[135:167] sess=s1
+  [    ACTIVE|fresh] (      rule) Teams must register before kickoff.
+               prov: contest-rules-v1[135:200] sess=s1
+  [    ACTIVE|fresh] (      rule) Submissions must use a Qwen model via Qwen Cloud MaaS.
+               prov: contest-rules-v1[202:255] sess=s1
+  [    ACTIVE|stale] (assumption) We should still use Python 2 for the build scripts since that is what the old runner expected.
+               prov: contest-rules-v1[260:350] sess=s1
+  [    ACTIVE|fresh] (      fact) The grand prize is 10000 USD.
+               prov: contest-rules-v1[356:376] sess=s1
+  [    ACTIVE|fresh] (      rule) The toolchain now requires Python 3.11.
+               prov: organizer-update-v2[60:89] sess=s2
+  [    ACTIVE|fresh] (assumption) Judging is done by Qwen and Alibaba Cloud engineers.
+               prov: organizer-update-v2[112:163] sess=s2
+
+==============================================================================
+TRANSCRIPT (replayable) — step summary
+==============================================================================
+  2026-06-10T02:53:54+00:00      ingest_start  (qwen-local)
+  2026-06-10T02:54:17+00:00   facts_extracted  (qwen-local)
+  2026-06-10T02:54:17+00:00       ingest_done  (qwen-local)
+  2026-06-10T02:54:17+00:00          question  (qwen-local)
+  2026-06-10T02:54:17+00:00            recall  (qwen-local)
+  2026-06-10T02:54:25+00:00            answer  (qwen-local)
+  2026-06-10T02:54:25+00:00          question  (qwen-local)
+  2026-06-10T02:54:25+00:00            recall  (qwen-local)
+  2026-06-10T02:54:29+00:00            answer  (qwen-local)
+  2026-06-10T02:54:29+00:00          question  (qwen-local)
+  2026-06-10T02:54:29+00:00            recall  (qwen-local)
+  2026-06-10T02:54:32+00:00            answer  (qwen-local)
+
+Full transcript JSONL: /home/user/workspaces/jaewon/dacon/competitions/qwen_cloud_hackathon_2026/public_repo_staging/rulememory-qwen-agent/eval/_demo_run/transcript.jsonl

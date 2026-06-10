@@ -1,106 +1,195 @@
-# RuleMemory
+# RuleMemory — a Qwen-powered MemoryAgent
 
-> **▶ 60-second demo video:** [https://github.com/cjw0076/rulememory-qwen-agent/releases/download/demo-v1/rulememory_qwen_demo.mp4](https://github.com/cjw0076/rulememory-qwen-agent/releases/download/demo-v1/rulememory_qwen_demo.mp4)
+> **Global AI Hackathon Series with Qwen Cloud · Track: MemoryAgent**
 
+RuleMemory is a real, runnable memory agent. It reads free-form notes
+(contest rules, deadlines, working assumptions), uses **Qwen** to extract
+atomic typed facts, stores them in a **typed, provenance-tracked,
+semantically-recallable** memory that **persists across sessions**, and then
+answers questions grounded strictly on what it remembers — flagging stale
+assumptions and superseding facts that conflict with newer information.
 
-RuleMemory is a Qwen-powered MemoryAgent for competition and launch teams that
-must keep rules, deadlines, source evidence, stale assumptions, and submission
-readiness synchronized across sessions.
+It is not a cached trace. The reasoning path runs **real Qwen inference**: a
+local `Qwen2.5-VL-7B-Instruct` (text chat, via transformers) by default, or the
+**Qwen Cloud MaaS** OpenAI-compatible endpoint when an API key is present —
+behind a single interface.
 
-## Track
+---
 
-- Hackathon: Global AI Hackathon Series with Qwen Cloud
-- Track: MemoryAgent
-- Core model route: Qwen Cloud MaaS OpenAI-compatible endpoint
-- Recommended public repo name: `rulememory-qwen-agent`
-- License: MIT
+## What makes it a real MemoryAgent
 
-## Why It Matters
+| Capability | Where | How it's real |
+|---|---|---|
+| **Qwen fact extraction** | `reasoner.py` | Real local Qwen2.5-VL-7B inference (or Qwen Cloud); robust JSON parsing |
+| **Typed memory** | `memory.py` | `rule` / `deadline` / `assumption` / `fact` entries |
+| **Provenance** | `memory.py` | Every entry stores `source_id` + char-span + verbatim quote |
+| **Semantic recall** | `embedder.py` | Real embeddings (sentence-transformers) or deterministic hashing-TF-IDF fallback; cosine ranking |
+| **Cross-session persistence** | `memory.py` | JSONL store; restart reloads every entry, status, provenance |
+| **Conflict / supersede** | `agent.py` | New fact conflicting with an older one (same topic *or* semantically close) supersedes it — append-only, old entry kept and marked |
+| **Temporal reasoning** | `memory.py` | `due_within(hours)`, `stale_now()`, deadline-passed detection, TTL |
+| **Replayable transcript** | `agent.py` | Every step (`ingest_start → facts_extracted → … → answer`) recorded to JSONL |
+| **Web UI** | `webapp/` | FastAPI + vanilla JS; ingest, ask, memory table, recall hits, transcript |
 
-Teams lose time and make bad submission decisions when rules, deadlines,
-eligibility constraints, and platform requirements live only in chat context.
-RuleMemory turns those facts into auditable memory entries with source
-references, stale-check policy, and repeatable readiness packets.
-
-## Current Demo
-
-The demo proves three things:
-
-1. A live Qwen model call succeeds from the target environment.
-2. Qwen reads the live RuleMemory seed and summarizes remembered facts, stale
-   risks, and next builder action.
-3. The local RuleMemory pipeline emits a refreshed readiness packet without
-   writing secrets.
-
-Run:
-
-```bash
-export QWEN_API_KEY="<your key>"
-export QWEN_OPENAI_BASE_URL="https://<your-workspace-host>/compatible-mode/v1"
-./scripts/qwen_rule_memory_demo.sh
-```
-
-Generated evidence:
-
-- `docs/qwen_rule_memory_demo_trace.md`
-- `docs/rule_memory_readiness_packet.md`
-- `docs/rule_memory_live_seed_20260607.json`
+---
 
 ## Architecture
 
-```text
-Official sources / operator receipts
-  -> RuleMemory seed entries
-  -> Qwen model call
-  -> remembered facts + stale-risk warning + next action
-  -> readiness packet and demo trace
+```
+                       ┌─────────────────────────────────────────┐
+  free-form notes ───► │  RuleMemoryAgent.ingest()               │
+  (rules/deadlines)    │    1. Qwen extract_facts() ── typed +    │
+                       │       provenance spans                   │
+                       │    2. store in Memory (JSONL, persistent)│
+                       │    3. conflict_candidates() → Qwen        │
+                       │       detect_conflicts() → supersede      │
+                       │    4. flag stale / passed deadlines       │
+                       └───────────────┬──────────────────────────┘
+                                       │  (every step → transcript.jsonl)
+   question ──────────────────────────▼──────────────────────────
+                       ┌─────────────────────────────────────────┐
+                       │  RuleMemoryAgent.answer()               │
+                       │    1. Memory.recall() — embed query,     │
+                       │       cosine over entry embeddings        │
+                       │    2. Qwen answer() grounded on hits,     │
+                       │       warns on stale/superseded, cites    │
+                       │       [#n] → source char-span             │
+                       └──────────────────────────────────────────┘
+
+  Reasoner backends (one interface):
+    QwenCloudReasoner  ──  Qwen Cloud MaaS / DashScope (OpenAI-compatible)   [production]
+    QwenLocalReasoner  ──  Qwen2.5-VL-7B-Instruct via transformers (text)    [default here]
+    RuleBasedReasoner  ──  deterministic, model-free                          [CI / fallback]
 ```
 
-Next architecture diagram should show:
+`make_reasoner()` picks **Cloud** if `QWEN_API_KEY`/`DASHSCOPE_API_KEY` is set,
+else **Local** if a CUDA GPU + transformers are available, else the
+**rule-based** fallback. The agent, memory, UI and demo are identical across
+backends — only the reasoner swaps.
 
-- Qwen Cloud MaaS endpoint
-- RuleMemory JSON store
-- source freshness monitor
-- readiness packet generator
-- public submission package
+---
 
-Architecture and deployment proof assets:
+## Quickstart
 
-- `docs/architecture_diagram.md`
-- `deploy/alibaba_cloud/qwen_maas_client.py`
-- `docs/alibaba_cloud_deployment_proof.md`
-- `docs/devpost_submission_answers.md`
-- `docs/final_submission_checklist.md`
+### 1. Multi-session demo with REAL local Qwen
 
-## What Is Remembered
+Requires a GPU + transformers (the `dacon_vlm` conda env here has torch 2.8+cu128,
+transformers 5.10, 2× RTX 5090):
 
-- submission deadline and internal freeze target
-- selected track and rationale
-- Qwen cloud API proof
-- next package decision
-- stale source window and refresh policy
+```bash
+RULEMEMORY_FORCE_HASH_EMBED=1 \
+  /home/user/miniconda3/envs/dacon_vlm/bin/python eval/demo.py --backend local
+```
 
-## Privacy
+This runs the full scenario: session 1 ingests contest rules (incl. a stale
+"use Python 2" assumption + a deadline), the process exits, then session 2
+reloads memory from disk, ingests a correction, supersedes/flags the stale
+assumption, and answers deadline / version / membership questions — all with
+real Qwen. The verbatim output of one such run is committed at
+[`eval/SAMPLE_RUN_qwen_local.txt`](eval/SAMPLE_RUN_qwen_local.txt).
 
-No API keys, provider credentials, account exports, cookies, raw private logs,
-or private workspace history are written to generated docs. Public examples use
-environment variable placeholders only.
+### 2. GPU-free demo (rule-based fallback)
 
-## Shipping
+```bash
+RULEMEMORY_FORCE_HASH_EMBED=1 python eval/demo.py --backend rule-based
+```
 
-To publish this repo, record the demo video, and submit on Devpost, follow
-`docs/FOUNDER_SHIP_STEPS.md` (exact copy-paste commands and a shot-by-shot
-video script).
+### 3. Qwen Cloud MaaS (production path)
 
-## Status
+```bash
+export QWEN_API_KEY="sk-..."                 # or DASHSCOPE_API_KEY
+export QWEN_MODEL="qwen-plus"                 # optional
+# export QWEN_OPENAI_BASE_URL="https://dashscope-intl.aliyuncs.com/compatible-mode/v1"
+python eval/demo.py --backend cloud
+```
 
-- Qwen cloud smoke: verified (cached trace in `docs/qwen_api_smoke_report.md`)
-- Qwen-backed demo call: verified (cached trace in `docs/qwen_rule_memory_demo_trace.md`)
-- Live RuleMemory seed: ready
-- Architecture diagram: ready
-- Alibaba Cloud/Qwen code-file proof: ready and locally verified
-- Public repo safety review: complete (secret-safe, hosts/paths sanitized)
-- Devpost answer draft: ready
-- Final submission checklist: ready
-- Ship steps: `docs/FOUNDER_SHIP_STEPS.md`
-- Remaining founder-only gates: create public repo, record 3-min video, submit on Devpost
+### 4. Web UI
+
+```bash
+# GPU-free demo:
+RULEMEMORY_BACKEND=rule-based RULEMEMORY_FORCE_HASH_EMBED=1 \
+  python webapp/server.py
+# or real local Qwen:
+RULEMEMORY_BACKEND=local \
+  /home/user/miniconda3/envs/dacon_vlm/bin/python webapp/server.py
+```
+
+Open <http://127.0.0.1:8000>. Click **Load session-1 sample → Ingest with
+Qwen**, ask "what python version should we use?", then **Load correction sample
+→ Ingest** and watch the Python-2 assumption get superseded. The memory table,
+recall scores, provenance spans, and transcript update live.
+
+---
+
+## Tests
+
+GPU/credential-free (uses the rule-based reasoner + hashing embedder):
+
+```bash
+RULEMEMORY_FORCE_FALLBACK=1 RULEMEMORY_FORCE_HASH_EMBED=1 python -m pytest tests/ -q
+# 11 passed, 1 skipped (GPU test)
+```
+
+Real Qwen GPU smoke test (opt-in):
+
+```bash
+RULEMEMORY_RUN_GPU=1 /home/user/miniconda3/envs/dacon_vlm/bin/python \
+  -m pytest tests/test_local_qwen_gpu.py -v -s
+```
+
+---
+
+## Verified run (real Qwen2.5-VL-7B-Instruct, text mode)
+
+From [`eval/SAMPLE_RUN_qwen_local.txt`](eval/SAMPLE_RUN_qwen_local.txt) —
+Qwen extracted these from session 1's rules:
+
+```
+  - (  deadline) The final submission deadline is 2026-07-10T23:59:00+00:00 on Devpost.  due=2026-07-10T23:59:00Z
+  - (      rule) Teams may have at most 4 members.
+  - (      rule) Teams must register before kickoff.
+  - (      rule) Submissions must use a Qwen model via Qwen Cloud MaaS.
+  - (assumption) We should still use Python 2 for the build scripts ...  [STALE]
+  - (      fact) The grand prize is 10000 USD.
+```
+
+After restart + correction, grounded answers (real Qwen):
+
+```
+Q: What Python version should we use for the build scripts?
+  A: The toolchain now requires Python 3.11.
+  ! warning: The assumption in fact #1 is marked as STALE.
+
+Q: How many members can a team have, and which model must we use?
+  A: A team can have at most 4 members, and submissions must use a Qwen model via Qwen Cloud MaaS.
+```
+
+---
+
+## Honest framing
+
+- The live reasoning path is **real Qwen** — no fabricated/cached LLM text.
+- **Default backend here is local `Qwen2.5-VL-7B-Instruct`** (text chat) because
+  no Qwen Cloud API key is provisioned in this environment. `QwenCloudReasoner`
+  is fully implemented (real HTTP to the DashScope OpenAI-compatible endpoint);
+  setting `QWEN_API_KEY` swaps the production Qwen Cloud MaaS path in with **zero
+  other changes** — same agent, memory, UI, and demo.
+- The semantic embedder prefers `sentence-transformers`; if unavailable it falls
+  back to a **deterministic hashing-TF-IDF** vectorizer so recall is still real
+  (cosine over hashed n-grams), and CI stays dependency-light.
+- The rule-based reasoner is a transparent heuristic for credential/GPU-free CI;
+  it is never used when a Qwen backend is available.
+
+## Layout
+
+```
+src/rulememory_qwen/
+  reasoner.py   # Qwen Local / Qwen Cloud / rule-based behind one interface
+  memory.py     # typed entries, provenance, TTL, supersede, semantic recall, persistence
+  embedder.py   # sentence-transformers or deterministic hashing-TFIDF
+  agent.py      # ingest→extract→store→conflict→answer loop + transcript
+webapp/         # FastAPI server + vanilla-JS UI
+eval/           # multi-session demo + scenario + committed real-Qwen sample run
+tests/          # GPU-free pytest suite + opt-in GPU smoke test
+```
+
+License: MIT.

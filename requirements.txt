@@ -1,0 +1,20 @@
+# Core (always needed)
+numpy>=1.24
+
+# Web UI
+fastapi>=0.110
+uvicorn>=0.27
+pydantic>=2.0
+
+# Local Qwen reasoner (GPU). Pin to the versions verified in the dacon_vlm env.
+# transformers>=5.10
+# torch>=2.8        # install the CUDA build that matches your GPU
+# accelerate>=1.0
+# qwen-vl-utils
+
+# Optional real semantic embedder (falls back to a deterministic hashing
+# vectorizer if absent — see src/rulememory_qwen/embedder.py)
+# sentence-transformers>=2.2
+
+# Tests
+pytest>=7.0
